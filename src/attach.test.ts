@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { attach } from './attach.js'
 import { LATE_ATTACH_WARNING, type CaptionRoom, type DataReceivedListener } from './room.js'
+import { isNearBottom, shouldFollowLiveUpdate } from './view.js'
 import type { TranscriptPayload } from './types.js'
 
 class FakeRoom implements CaptionRoom {
@@ -190,5 +191,41 @@ describe('LiveSpeech.attach', () => {
     expect(writeText.mock.calls[0]?.[0]).toContain('Sofia')
     expect(writeText.mock.calls[0]?.[0]).toContain('Goedemorgen')
     speech.stop()
+  })
+
+  it('does not pull the reader to the bottom while they are reading earlier lines', () => {
+    const room = new FakeRoom()
+    const element = mount()
+    const speech = attach(room, { element, locale: 'en' })
+    room.emit(packet('live-1', 'final', 'first', 'ses_a'), 'live-speech')
+
+    const body = element.querySelector<HTMLElement>('.live-speech-body')
+    expect(body).not.toBeNull()
+    Object.defineProperty(body, 'scrollHeight', { configurable: true, get: () => 800 })
+    Object.defineProperty(body, 'clientHeight', { configurable: true, get: () => 200 })
+    body!.scrollTop = 40
+
+    room.emit(packet('live-2', 'interim', 'still talking', 'ses_a'), 'live-speech')
+    expect(body!.scrollTop).toBe(40)
+
+    room.emit(packet('live-2', 'interim', 'next meeting', 'ses_b'), 'live-speech')
+    expect(body!.scrollTop).toBe(800)
+    speech.stop()
+  })
+})
+
+describe('scroll position', () => {
+  it('follows live lines only from the bottom, and always when a session opens', () => {
+    expect(shouldFollowLiveUpdate(true, false)).toBe(true)
+    expect(shouldFollowLiveUpdate(false, false)).toBe(false)
+    expect(shouldFollowLiveUpdate(false, true)).toBe(true)
+  })
+
+  it('treats a short list as already at the bottom', () => {
+    const element = document.createElement('div')
+    Object.defineProperty(element, 'scrollHeight', { configurable: true, get: () => 120 })
+    Object.defineProperty(element, 'clientHeight', { configurable: true, get: () => 200 })
+    element.scrollTop = 0
+    expect(isNearBottom(element)).toBe(true)
   })
 })

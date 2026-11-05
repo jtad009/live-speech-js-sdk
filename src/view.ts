@@ -15,6 +15,26 @@ export interface PanelActions {
   onSave: () => void
 }
 
+/** How close to the bottom still counts as following the live caption, in pixels. */
+const BOTTOM_SLACK_PX = 32
+
+/**
+ * Keep the latest line in view only when the reader has not moved away from it,
+ * or when a new session has replaced the list they were reading.
+ *
+ * Interims arrive many times a second. Forcing the scroll on each one makes
+ * earlier finals unreachable. A session change is the exception: the old
+ * meeting is gone, and the new one should start in view.
+ */
+export function shouldFollowLiveUpdate(wasAtBottom: boolean, sessionOpened: boolean): boolean {
+  return wasAtBottom || sessionOpened
+}
+
+/** True when the reader is at the bottom, or the list is too short to scroll. */
+export function isNearBottom(element: HTMLElement, slack = BOTTOM_SLACK_PX): boolean {
+  return element.scrollHeight - element.scrollTop - element.clientHeight <= slack
+}
+
 export function mountPanel(element: HTMLElement, actions: PanelActions): PanelView {
   const doc = element.ownerDocument
   ensureStyles(doc)
@@ -87,6 +107,7 @@ export function mountPanel(element: HTMLElement, actions: PanelActions): PanelVi
 
   root.append(toolbar, body, caption, foot)
   element.replaceChildren(root)
+  let seenSession: string | null = null
 
   return {
     setPending(pending: boolean) {
@@ -98,6 +119,9 @@ export function mountPanel(element: HTMLElement, actions: PanelActions): PanelVi
       notice.textContent = message
     },
     render(panel: TranscriptPanel) {
+      const sessionOpened = panel.sessionId !== seenSession
+      const follow = shouldFollowLiveUpdate(isNearBottom(body), sessionOpened)
+      seenSession = panel.sessionId
       list.replaceChildren(...panel.finals.map((line) => renderLine(doc, line, false)))
       empty.hidden = panel.finals.length > 0 || panel.caption !== null
       renderCaption(doc, caption, panel.caption)
@@ -107,9 +131,7 @@ export function mountPanel(element: HTMLElement, actions: PanelActions): PanelVi
       const hasFinals = finals > 0
       copy.disabled = !hasFinals
       save.disabled = !hasFinals
-      if (panel.finals.length > 0) {
-        body.scrollTop = body.scrollHeight
-      }
+      if (follow) body.scrollTop = body.scrollHeight
     },
     destroy() {
       if (start) start.removeEventListener('click', actions.onInvite)

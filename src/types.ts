@@ -86,8 +86,10 @@ export interface TranscriptLine {
   translation: string
   /**
    * The wording to show as the line.
-   * The translation, when the viewer's language differs from the speaker.
-   * The original, when they match or no translation was sent.
+   * The translation, when `target_language` is the viewer's language and the
+   * speaker's language is not.
+   * The original, when the viewer speaks it, when no translation was sent, or
+   * when the translation was written for a different language.
    */
   text: string
   /**

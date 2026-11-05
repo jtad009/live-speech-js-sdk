@@ -8,9 +8,10 @@ import type { TranscriptPanel, TranscriptPayload } from './types.js'
  * session rules without the built-in panel. Feed it packets from
  * `parseTranscript`. `LiveSpeech.attach` uses one of these internally.
  *
- * The locale is fixed for the life of the client. It decides whether each
- * line's `text` is the original or the translation. It does not translate
- * anything itself. The worker already did that.
+ * The locale is fixed for the life of the client. A line's `text` is the
+ * translation only when the packet's `target_language` matches this locale.
+ * A translation into some other language stays secondary. The client does
+ * not translate anything itself. The worker already did that.
  */
 export interface TranscriptClient {
   /**
@@ -42,8 +43,8 @@ export interface TranscriptClient {
  *
  * @param viewerLocale - BCP-47 tag of the person reading the page, such as
  * `navigator.language`. Only the primary language is compared (`en` from
- * `en-GB`). When it differs from the speaker, the translation is the line
- * they read. Defaults to `en`.
+ * `en-GB`). The translation is the line they read only when the packet was
+ * translated into that language. Defaults to `en`.
  * @returns A client with no session, no finals, and no caption.
  *
  * @example

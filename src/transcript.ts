@@ -63,6 +63,7 @@ function toLine(payload: TranscriptPayload, viewerLocale: string): TranscriptLin
     payload.original,
     payload.translation,
     payload.language,
+    payload.target_language,
     viewerLocale,
   )
   return {

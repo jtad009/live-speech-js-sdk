@@ -8,7 +8,7 @@ Spoken text stays in the browser. The SDK does not post lines to the host applic
 
 ## Install and call
 
-The package is not on npm yet. Until it is published, a host can depend on this repository.
+The package is not on npm yet. A host can install this Git repository. `npm install` runs `prepare`, which compiles `dist/index.js` and `dist/index.d.ts`. `exports` points at those files. They are not committed. An install that skips `prepare` leaves the import path unresolved.
 
 Two ways to use it:
 
@@ -80,7 +80,9 @@ For an accepted packet:
 - A final is kept. The same `id` replaces that line instead of adding a second copy. A replay uses the original id, so a late joiner does not see duplicates.
 - Finals are ordered by the number in `live-N` or `mock-N`. `live-2` stays ahead of `live-10`. The order is the order the phrase was heard, not the order the translation finished. An id without that shape sorts last.
 
-The viewer's locale decides which wording is the main line. Only the primary language is compared, so `en-GB` matches `en`. When the speaker's language differs, the translation is the line and the original is secondary. When they match, or when the translation is empty, the original is the line. Copy and Save still include both wordings.
+The viewer's locale decides which wording is the main line. Only the primary language is compared, so `en-GB` matches `en`. The translation is the line when `target_language` is the viewer's language and the speaker's is not. A Dutch line translated into English stays Dutch for a French reader, with the English kept as the secondary line. The original is the line when the viewer speaks it, when the translation is empty, or when that translation is for a different language. Copy and Save still include both wordings.
+
+The panel follows the latest line while the reader is at the bottom. Scrolling up to read earlier finals keeps that position through later interims. A new `session_id` replaces the list and brings the new session into view.
 
 ## A host that draws its own captions
 

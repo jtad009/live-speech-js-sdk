@@ -46,8 +46,9 @@ export interface AttachOptions {
   element: Element | null
   /**
    * BCP-47 tag of the person looking at this page.
-   * Defaults to `en`. Only the primary language is compared with the speaker.
-   * Pass `navigator.language` unless the host has its own locale.
+   * Defaults to `en`. The translation is the main line only when the packet's
+   * `target_language` matches this locale. Pass `navigator.language` unless
+   * the host has its own locale.
    */
   locale?: string
   /**
