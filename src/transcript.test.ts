@@ -60,6 +60,13 @@ describe('createTranscript', () => {
     expect(client.state.finals.map((line) => line.id)).toEqual(['live-1', 'live-2'])
     expect(client.state.finals[0]?.text).toBe('first')
   })
+
+  it('keeps a translation into a different language off the main line', () => {
+    const client = createTranscript('fr')
+    client.apply(packet('live-1', 'final', 'Goedemorgen'))
+    expect(client.state.finals[0]?.text).toBe('Goedemorgen')
+    expect(client.state.finals[0]?.secondary).toBe('en:Goedemorgen')
+  })
 })
 
 describe('parseTranscript', () => {

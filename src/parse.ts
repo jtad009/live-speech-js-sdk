@@ -13,7 +13,32 @@ function asStatus(value: unknown): UtteranceStatus | null {
   return value === 'interim' || value === 'final' ? value : null
 }
 
-/** Accept a v1 transcript packet. Anything else is ignored. */
+/**
+ * Read one data-channel payload and return a caption packet, or `null`.
+ *
+ * Accepts a UTF-8 JSON string or the `Uint8Array` LiveKit passes to
+ * `DataReceived`. Returns `null` for malformed JSON, for any packet whose
+ * `v` is not `1` or whose `type` is not `"transcript"`, and for a transcript
+ * that is missing a required string or has a `ts` that is not a finite
+ * number. `session_id` may be absent or `null`. Any other type for
+ * `session_id` rejects the packet.
+ *
+ * A `null` result must be ignored. Do not throw, and do not clear the panel.
+ * `meeting_status` and any future non-caption message take this path.
+ * Rejected packets are not counted.
+ *
+ * The spoken text is not logged.
+ *
+ * @param raw - JSON text, or the bytes from the LiveKit data callback.
+ * @returns The packet, or `null` when the payload is not a v1 transcript.
+ *
+ * @example
+ * ```ts
+ * const packet = parseTranscript(payload)
+ * if (!packet) return
+ * speech.apply(packet)
+ * ```
+ */
 export function parseTranscript(raw: string | Uint8Array): TranscriptPayload | null {
   const text = typeof raw === 'string' ? raw : new TextDecoder().decode(raw)
   let parsed: unknown
