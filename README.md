@@ -8,7 +8,13 @@ Spoken text stays in the browser. The SDK does not post lines to the host applic
 
 ## Install and call
 
-The package is not on npm yet. A host can install this Git repository. `npm install` runs `prepare`, which compiles `dist/index.js` and `dist/index.d.ts`. `exports` points at those files. They are not committed. An install that skips `prepare` leaves the import path unresolved.
+Install the release candidate:
+
+```sh
+npm install @live-speech/sdk@rc
+```
+
+`0.1.0-rc.1` is the LiveKit panel. The npm package already contains `dist/index.js` and `dist/index.d.ts`. A Git install still compiles those files during `prepare`, because they are not committed.
 
 Two ways to use it:
 
