@@ -1,7 +1,9 @@
 {
   "name": "@live-speech/sdk",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.0-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Captions and transcript for a host meeting page. The Live Speech API key stays on the host server.",
   "type": "module",
   "exports": {
